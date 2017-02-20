@@ -35,22 +35,22 @@ public class MainActivity extends AppCompatActivity {
                 {
                         "1",
                         "Get",
-                        "Get 请求",
+                        "Get请求；支持JSON字符串自动转换为对象；支持自定义转换扩展；支持String返回；支持全局缓存；支持不同接口不同缓存策略；支持debug模式",
                 },
                 {
                         "2",
                         "Post",
-                        "Post 请求",
+                        "Post表单范例",
                 },
                 {
                         "3",
                         "Download",
-                        "Download 请求",
+                        "下载文件请求；支持断点续传；可自定义下载线程数量；自动保存下载现场",
                 },
                 {
                         "4",
                         "Upload",
-                        "Upload 请求",
+                        "上传文件请求",
                 },
         };
 
