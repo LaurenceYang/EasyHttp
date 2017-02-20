@@ -502,4 +502,12 @@ public class EasyHttpClientManager {
 			}
 		});
 	}
+
+	/**
+	 * 取消请求.
+	 * @param type
+     */
+	public void cancelRequest(int type) {
+		getOkHttpClient(type).dispatcher().cancelAll();
+	}
 }

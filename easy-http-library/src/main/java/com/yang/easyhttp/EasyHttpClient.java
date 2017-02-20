@@ -8,8 +8,6 @@ import com.yang.easyhttp.download.EasyDownloadManager;
 import com.yang.easyhttp.manager.EasyHttpClientManager;
 import com.yang.easyhttp.request.EasyRequestParams;
 
-import java.io.File;
-
 /**
  * Created by yangy on 2017/2/15.
  */
@@ -100,11 +98,11 @@ public class EasyHttpClient {
 		EasyHttpClientManager.getInstance().uploadFile(url, filePath, callback);
 	}
 
-	public static void cancel(String url) {
-
-	}
-
-	public static void cancel(String url, int cacheType) {
-
+	/**
+	 * cancel request.
+	 * @param cacheType
+     */
+	public static void cancel(int cacheType) {
+		EasyHttpClientManager.getInstance().cancelRequest(cacheType);
 	}
 }

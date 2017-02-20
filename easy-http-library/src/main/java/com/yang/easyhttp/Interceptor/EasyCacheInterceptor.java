@@ -39,6 +39,10 @@ public class EasyCacheInterceptor implements Interceptor {
 					: "public, only-if-cached, max-stale=86400";
 		}
 
+		final Request finalRequest = originalRequest.newBuilder()
+				.tag(originalRequest.url().toString())
+				.build();
+
 		Response response = chain.proceed(originalRequest);
 
 		if (mType != EasyCacheType.CACHE_TYPE_DEFAULT && response.code() < 400) {
