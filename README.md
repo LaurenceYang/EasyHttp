@@ -33,13 +33,18 @@
 在全局`build.gradle`文件的`repositories`添加如下所示配置：
 
 ```java
-mavenCentral()
+jcenter()
 ```
-
+jcenter上传目前审核中，不能访问的情况下在`repositories`添加以下配置：
+```java
+maven {
+    url  "http://dl.bintray.com/laurenceyanger/maven"
+}
+```
 在module的`build.gradle`文件的`dependencies`区域内添加如下所示配置：
 
 ```java
-compile 'com.yang:easyhttp:0.5.0'
+compile 'com.yang.easyhttp:easyhttp:0.5.0'
 ```
 
 ## 初始化
