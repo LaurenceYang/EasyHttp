@@ -42,7 +42,7 @@ publish {
     userOrg = 'laurenceyanger'
     groupId = 'com.yang.easyhttp'
     artifactId = 'easyhttp'
-    publishVersion = '0.5.0'
+    publishVersion = '0.5.1'
     desc = 'network module for android,based on okhttp'
     website = 'https://github.com/LaurenceYang/EasyHttp'
 }

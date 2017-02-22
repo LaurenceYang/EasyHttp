@@ -1,5 +1,6 @@
 # EasyHttp
-
+[![License](https://img.shields.io/badge/license-Apache%202-green.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+[![Download](https://api.bintray.com/packages/laurenceyanger/maven/easyhttp/images/download.svg) ](https://bintray.com/laurenceyanger/maven/easyhttp/_latestVersion)
 ## 特性
 * 支持Get请求
 * 支持Post请求
