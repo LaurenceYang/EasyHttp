@@ -18,5 +18,5 @@ public interface EasyCallback<T> {
 	void onFailure(Throwable error, String content);
 
 	// 子线程.
-	T convert(String body);
+	T convert(String body) throws Exception;
 }

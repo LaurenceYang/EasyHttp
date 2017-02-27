@@ -44,7 +44,7 @@ public class DownloadActivity extends AppCompatActivity {
                         "http://tianqi.2345.com/redirect.php?downloadQr"
                 },
                 {
-                        "阅读王呀",
+                        "阅读王",
                         "http://book.km.com/app/index.php?c=app&a=download",
                 },
                 {

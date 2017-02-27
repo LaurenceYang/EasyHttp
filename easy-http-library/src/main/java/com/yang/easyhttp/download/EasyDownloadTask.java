@@ -95,26 +95,46 @@ public class EasyDownloadTask implements Runnable {
 	public void run() {
 		InputStream inputStream = null;
 		BufferedInputStream bufferedInputStream = null;
-		RandomAccessFile tempFile = null;
+		RandomAccessFile randomAccessFile = null;
 
 		try {
-			String fileName = TextUtils.isEmpty(mTaskEntity.getFileName()) ?
-					EasyFileUtils.getFileNameFromUrl(mTaskEntity.getUrl()) :
-					mTaskEntity.getFileName();
-			String filePath = TextUtils.isEmpty(mTaskEntity.getFilePath()) ?
-					EasyFileUtils.getDefaultFilePath(EasyHttpClientManager.getInstance().getContext()) :
-					mTaskEntity.getFilePath();
-			mTaskEntity.setFileName(fileName);
-			mTaskEntity.setFilePath(filePath);
+			String saveDirPath = mTaskEntity.getSaveDirPath();
+			if (TextUtils.isEmpty(saveDirPath)) {
+				saveDirPath = EasyFileUtils.getDefaultFilePath(EasyHttpClientManager.getInstance().getContext());
+			}
+			mTaskEntity.setSaveDirPath(saveDirPath);
 
-			tempFile = new RandomAccessFile(new File(filePath, fileName), "rwd");
+			File file = new File(saveDirPath);
+			if (!file.exists()) {
+				boolean created = file.mkdirs();
+				if (!created) {
+					throw new FileNotFoundException("save dir path not created");
+				}
+			}
+
+			String saveFileName = mTaskEntity.getSaveFileName();
+			if (TextUtils.isEmpty(saveFileName)) {
+				saveFileName = EasyFileUtils.getFileNameFromUrl(mTaskEntity.getDownloadUrl());
+			}
+			mTaskEntity.setSaveFileName(saveFileName);
+
+			File saveFile = new File(saveDirPath, saveFileName);
+			randomAccessFile = new RandomAccessFile(saveFile, "rwd");
+
 			mTaskEntity.setTaskStatus(EasyTaskStatus.TASK_STATUS_CONNECTING);
 			mHandler.sendEmptyMessage(EasyTaskStatus.TASK_STATUS_CONNECTING);
 
+			// 异常检测及下载错误校正.
 			long completedSize = mTaskEntity.getCompletedSize();
-			if (tempFile.length() == 0) {
+			long totalSize = mTaskEntity.getTotalSize();
+			if (randomAccessFile.length() == 0
+					|| completedSize > totalSize) {
 				completedSize = 0;
+				mTaskEntity.setTotalSize(0);
 				mTaskEntity.setCompletedSize(0);
+				if (EasyDaoManager.instance().queryWithId(mTaskEntity.getTaskId()) != null) {
+					EasyDaoManager.instance().delete(mTaskEntity);
+				}
 			}
 
 			if (EasyDaoManager.instance().queryWithId(mTaskEntity.getTaskId()) != null) {
@@ -122,23 +142,22 @@ public class EasyDownloadTask implements Runnable {
 			}
 
 			Request request = new Request.Builder()
-					.url(mTaskEntity.getUrl())
+					.url(mTaskEntity.getDownloadUrl())
 					.header("RANGE", "bytes=" + completedSize + "-")
 					.build();
 
-			tempFile.seek(completedSize);
+			randomAccessFile.seek(completedSize);
 
 			Response response = mClient.newCall(request).execute();
 
 			if (response.isSuccessful()) {
 				ResponseBody responseBody = response.body();
 				if (responseBody != null) {
+					mTaskEntity.setTaskStatus(EasyTaskStatus.TASK_STATUS_DOWNLOAD_START);
 					if (EasyDaoManager.instance().queryWithId(mTaskEntity.getTaskId()) == null) {
 						EasyDaoManager.instance().insertOrReplace(mTaskEntity);
 						mTaskEntity.setTotalSize(responseBody.contentLength());
 					}
-
-					mTaskEntity.setTaskStatus(EasyTaskStatus.TASK_STATUS_DOWNLOAD_START);
 
 					double updateSize = mTaskEntity.getTotalSize() / 100;
 					inputStream = responseBody.byteStream();
@@ -150,7 +169,7 @@ public class EasyDownloadTask implements Runnable {
 					while ( (length = bufferedInputStream.read(buffer)) > 0
 							&& mTaskEntity.getTaskStatus() != EasyTaskStatus.TASK_STATUS_CANCEL
 							&& mTaskEntity.getTaskStatus() != EasyTaskStatus.TASK_STATUS_PAUSE) {
-						tempFile.write(buffer, 0, length);
+						randomAccessFile.write(buffer, 0, length);
 						completedSize += length;
 						buffOffset += length;
 
@@ -187,19 +206,25 @@ public class EasyDownloadTask implements Runnable {
 		} catch (FileNotFoundException e) {
 			mTaskEntity.setTaskStatus(EasyTaskStatus.TASK_STATUS_STORAGE_ERROR);
 			mHandler.sendEmptyMessage(EasyTaskStatus.TASK_STATUS_STORAGE_ERROR);
+			e.printStackTrace();
 		} catch (SocketTimeoutException e) {
 			mTaskEntity.setTaskStatus(EasyTaskStatus.TASK_STATUS_REQUEST_ERROR);
 			mHandler.sendEmptyMessage(EasyTaskStatus.TASK_STATUS_REQUEST_ERROR);
+			e.printStackTrace();
 		}  catch (IOException e) {
 			e.printStackTrace();
 		} finally {
-			EasyIOUtils.close(bufferedInputStream, inputStream, tempFile);
+			EasyIOUtils.close(bufferedInputStream, inputStream, randomAccessFile);
 		}
 	}
 
 	public void pause() {
 		mTaskEntity.setTaskStatus(EasyTaskStatus.TASK_STATUS_PAUSE);
-		EasyDaoManager.instance().update(mTaskEntity);
+		if (EasyDaoManager.instance().queryWithId(mTaskEntity.getTaskId()) == null) {
+			EasyDaoManager.instance().insertOrReplace(mTaskEntity);
+		} else {
+			EasyDaoManager.instance().update(mTaskEntity);
+		}
 		mHandler.sendEmptyMessage(EasyTaskStatus.TASK_STATUS_PAUSE);
 	}
 
@@ -210,7 +235,9 @@ public class EasyDownloadTask implements Runnable {
 
 	public void cancel() {
 		mTaskEntity.setTaskStatus(EasyTaskStatus.TASK_STATUS_CANCEL);
-		EasyDaoManager.instance().delete(mTaskEntity);
+		if (EasyDaoManager.instance().queryWithId(mTaskEntity.getTaskId()) != null) {
+			EasyDaoManager.instance().delete(mTaskEntity);
+		}
 		mHandler.sendEmptyMessage(EasyTaskStatus.TASK_STATUS_CANCEL);
 	}
 }

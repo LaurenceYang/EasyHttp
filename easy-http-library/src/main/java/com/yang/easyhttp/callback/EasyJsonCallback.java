@@ -1,14 +1,12 @@
 package com.yang.easyhttp.callback;
 
-import com.google.gson.Gson;
-
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
- * Created by yangy on 2017/2/15.
+ * Created by yangy on 2017/2/22.
  */
-public abstract class EasyJsonCallback<T> implements EasyCallback<T> {
+public abstract class EasyJsonCallback implements EasyCallback<JSONObject> {
 	@Override
 	public void onStart() {
 
@@ -20,10 +18,7 @@ public abstract class EasyJsonCallback<T> implements EasyCallback<T> {
 	}
 
 	@Override
-	public T convert(String body) {
-		Type t = getClass().getGenericSuperclass();
-		Type tArg = ((ParameterizedType) t).getActualTypeArguments()[0];
-		Gson gson = new Gson(); //TODO:
-		return gson.fromJson(body, tArg);
+	public JSONObject convert(String body) throws JSONException {
+		return new JSONObject(body);
 	}
 }

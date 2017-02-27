@@ -21,11 +21,11 @@ public class EasyTaskEntity {
 	@Property
 	private long completedSize;
 	@Property
-	private String url;
+	private String downloadUrl;
 	@Property
-	private String filePath;
+	private String saveDirPath;
 	@Property
-	private String fileName;
+	private String saveFileName;
 	@Property
 	private int taskStatus;
 
@@ -33,22 +33,22 @@ public class EasyTaskEntity {
 		this.taskId = builder.taskId;
 		this.totalSize = builder.totalSize;
 		this.completedSize = builder.completedSize;
-		this.url = builder.url;
-		this.filePath = builder.filePath;
-		this.fileName = builder.fileName;
+		this.downloadUrl = builder.downloadUrl;
+		this.saveDirPath = builder.saveDirPath;
+		this.saveFileName = builder.saveFileName;
 		this.taskStatus = builder.taskStatus;
 	}
 
-	@Generated(hash = 175440671)
+	@Generated(hash = 209801383)
 	public EasyTaskEntity(Long id, String taskId, long totalSize, long completedSize,
-									String url, String filePath, String fileName, int taskStatus) {
+									String downloadUrl, String saveDirPath, String saveFileName, int taskStatus) {
 					this.id = id;
 					this.taskId = taskId;
 					this.totalSize = totalSize;
 					this.completedSize = completedSize;
-					this.url = url;
-					this.filePath = filePath;
-					this.fileName = fileName;
+					this.downloadUrl = downloadUrl;
+					this.saveDirPath = saveDirPath;
+					this.saveFileName = saveFileName;
 					this.taskStatus = taskStatus;
 	}
 
@@ -57,70 +57,69 @@ public class EasyTaskEntity {
 	}
 
 	public String getTaskId() {
-		taskId = TextUtils.isEmpty(taskId) ? String.valueOf(url.hashCode()) : taskId;
+		taskId = TextUtils.isEmpty(taskId) ? String.valueOf(downloadUrl.hashCode()) : taskId;
 		return taskId;
-	}
-
-	public long getTotalSize() {
-		return totalSize;
-	}
-
-	public long getCompletedSize() {
-		return completedSize;
-	}
-
-	public void setCompletedSize(Long completedSize) {
-		this.completedSize = completedSize;
-	}
-
-	public String getUrl() {
-		return url;
-	}
-
-	public String getFilePath() {
-		return filePath;
-	}
-
-	public String getFileName() {
-		return fileName;
-	}
-
-	public int getTaskStatus() {
-		return taskStatus;
 	}
 
 	public void setTaskId(String taskId) {
 		this.taskId = taskId;
 	}
 
+	public long getTotalSize() {
+		return totalSize;
+	}
+
 	public void setTotalSize(long totalSize) {
 		this.totalSize = totalSize;
+	}
+
+	public long getCompletedSize() {
+		return completedSize;
 	}
 
 	public void setCompletedSize(long completedSize) {
 		this.completedSize = completedSize;
 	}
 
-	public void setUrl(String url) {
-		this.url = url;
+	public String getDownloadUrl() {
+		return downloadUrl;
 	}
 
-	public void setFilePath(String filePath) {
-		this.filePath = filePath;
+	public void setDownloadUrl(String downloadUrl) {
+		this.downloadUrl = downloadUrl;
 	}
 
-	public void setFileName(String fileName) {
-		this.fileName = fileName;
+	public String getSaveDirPath() {
+		return saveDirPath;
+	}
+
+	public void setSaveDirPath(String saveDirPath) {
+		this.saveDirPath = saveDirPath;
+	}
+
+	public String getSaveFileName() {
+		return saveFileName;
+	}
+
+	public void setSaveFileName(String saveFileName) {
+		this.saveFileName = saveFileName;
+	}
+
+	public int getTaskStatus() {
+		return taskStatus;
 	}
 
 	public void setTaskStatus(int taskStatus) {
 		this.taskStatus = taskStatus;
 	}
 
-	public void setTaskStatus(Integer taskStatus) {
-		this.taskStatus = taskStatus;
+	public Long getId() {
+		return this.id;
 	}
 
+	public void setId(Long id) {
+		this.id = id;
+	}
 	public static class Builder {
 		// file id
 		private String taskId;
@@ -129,15 +128,15 @@ public class EasyTaskEntity {
 		// file complete length
 		private long completedSize;
 		// file url
-		private String url;
+		private String downloadUrl;
 		// file save path
-		private String filePath;
+		private String saveDirPath;
 		// file name
-		private String fileName;
+		private String saveFileName;
 		// file download status
 		private int taskStatus;
 
-		public Builder downloadId(String taskId) {
+		public Builder taskId(String taskId) {
 			this.taskId = taskId;
 			return this;
 		}
@@ -152,23 +151,24 @@ public class EasyTaskEntity {
 			return this;
 		}
 
-		public Builder url(String url) {
-			this.url = url;
+		public Builder downloadUrl(String downloadUrl) {
+			this.downloadUrl = downloadUrl;
+			this.taskId = String.valueOf(downloadUrl.hashCode());
 			return this;
 		}
 
-		public Builder filePath(String saveDirPath) {
-			this.filePath = saveDirPath;
+		public Builder saveDirPath(String saveDirPath) {
+			this.saveDirPath = saveDirPath;
 			return this;
 		}
 
-		public Builder fileName(String fileName) {
-			this.fileName = fileName;
+		public Builder saveFileName(String saveFileName) {
+			this.saveFileName = saveFileName;
 			return this;
 		}
 
-		public Builder downloadStatus(int downloadStatus) {
-			this.taskStatus = downloadStatus;
+		public Builder taskStatus(int taskStatus) {
+			this.taskStatus = taskStatus;
 			return this;
 		}
 
@@ -183,18 +183,11 @@ public class EasyTaskEntity {
 				"taskId='" + taskId + '\'' +
 				", totalSize=" + totalSize +
 				", completedSize=" + completedSize +
-				", url='" + url + '\'' +
-				", filePath='" + filePath + '\'' +
-				", fileName='" + fileName + '\'' +
+				", downloadUrl='" + downloadUrl + '\'' +
+				", saveDirPath='" + saveDirPath + '\'' +
+				", saveFileName='" + saveFileName + '\'' +
 				", taskStatus=" + taskStatus +
 				'}';
 	}
 
-	public Long getId() {
-		return this.id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
 }

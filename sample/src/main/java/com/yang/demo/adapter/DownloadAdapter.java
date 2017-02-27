@@ -117,10 +117,13 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.ViewHo
         holder.button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                String taskId = String.valueOf(holder.itemView.getTag().hashCode());
+                EasyDownloadTask task = mDownloadManger.getTask(taskId);
+
                 if (task == null) {
-                    EasyDownloadTask addTask = new EasyDownloadTask(new EasyTaskEntity.Builder().url(url).build());
-                    responseUIListener(addTask, holder);
-                    mDownloadManger.addTask(addTask);
+                    task = new EasyDownloadTask(new EasyTaskEntity.Builder().downloadUrl(url).build());
+                    responseUIListener(task, holder);
+                    mDownloadManger.addTask(task);
                 } else {
                     responseUIListener(task, holder);
                     EasyTaskEntity easyTaskEntity = task.getTaskEntity();
@@ -167,21 +170,21 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.ViewHo
         task.setDownloadTaskListener(new EasyDownloadTaskListener() {
             @Override
             public void onQueue(EasyDownloadTask downloadTask) {
-                if (holder.itemView.getTag().equals(taskEntity.getUrl())) {
+                if (holder.itemView.getTag().equals(taskEntity.getDownloadUrl())) {
                     holder.button.setText(R.string.queue);
                 }
             }
 
             @Override
             public void onConnecting(EasyDownloadTask downloadTask) {
-                if (holder.itemView.getTag().equals(taskEntity.getUrl())) {
+                if (holder.itemView.getTag().equals(taskEntity.getDownloadUrl())) {
                     holder.button.setText(R.string.connecting);
                 }
             }
 
             @Override
             public void onDownloadStart(EasyDownloadTask downloadTask) {
-                if (holder.itemView.getTag().equals(taskEntity.getUrl())) {
+                if (holder.itemView.getTag().equals(taskEntity.getDownloadUrl())) {
                     holder.button.setText(R.string.pause);
                     holder.progress.setProgress(Integer.parseInt(getPercent(taskEntity.getCompletedSize(), taskEntity.getTotalSize())));
                     holder.progressTxt.setText(getPercent(taskEntity.getCompletedSize(), taskEntity.getTotalSize()));
@@ -190,8 +193,8 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.ViewHo
 
             @Override
             public void onDownloading(EasyDownloadTask downloadTask) {
-                if (holder.itemView.getTag().equals(taskEntity.getUrl())) {
-                    if (holder.itemView.getTag().equals(taskEntity.getUrl())) {
+                if (holder.itemView.getTag().equals(taskEntity.getDownloadUrl())) {
+                    if (holder.itemView.getTag().equals(taskEntity.getDownloadUrl())) {
                         holder.button.setText(R.string.pause);
                         holder.progress.setProgress(Integer.parseInt(getPercent(taskEntity.getCompletedSize(), taskEntity.getTotalSize())));
                         holder.progressTxt.setText(getPercent(taskEntity.getCompletedSize(), taskEntity.getTotalSize()));
@@ -201,14 +204,14 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.ViewHo
 
             @Override
             public void onPause(EasyDownloadTask downloadTask) {
-                if (holder.itemView.getTag().equals(taskEntity.getUrl())) {
+                if (holder.itemView.getTag().equals(taskEntity.getDownloadUrl())) {
                     holder.button.setText(R.string.resume);
                 }
             }
 
             @Override
             public void onCancel(EasyDownloadTask downloadTask) {
-                if (holder.itemView.getTag().equals(taskEntity.getUrl())) {
+                if (holder.itemView.getTag().equals(taskEntity.getDownloadUrl())) {
                     holder.button.setText(R.string.start);
                     holder.progressTxt.setText("0");
                     holder.progress.setProgress(0);
@@ -217,14 +220,14 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.ViewHo
 
             @Override
             public void onFinish(EasyDownloadTask downloadTask) {
-                if (holder.itemView.getTag().equals(taskEntity.getUrl())) {
+                if (holder.itemView.getTag().equals(taskEntity.getDownloadUrl())) {
                     holder.button.setText(R.string.delete);
                 }
             }
 
             @Override
             public void onError(EasyDownloadTask downloadTask, int code) {
-                if (holder.itemView.getTag().equals(taskEntity.getUrl())) {
+                if (holder.itemView.getTag().equals(taskEntity.getDownloadUrl())) {
                     holder.button.setText(R.string.retry);
 
                     switch (code) {

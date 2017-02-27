@@ -3,12 +3,17 @@ package com.yang.easyhttp.manager;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 
+import com.google.gson.Gson;
 import com.yang.easyhttp.Interceptor.EasyCacheInterceptor;
 import com.yang.easyhttp.Interceptor.EasyLoggingInterceptor;
+import com.yang.easyhttp.Interceptor.EasyUserAgentInterceptor;
 import com.yang.easyhttp.cache.EasyCacheDir;
+import com.yang.easyhttp.cache.EasyCacheTime;
 import com.yang.easyhttp.cache.EasyCacheType;
 import com.yang.easyhttp.callback.EasyCallback;
+import com.yang.easyhttp.config.EasyHttpConfig;
 import com.yang.easyhttp.request.EasyRequestParams;
 
 import java.io.File;
@@ -25,6 +30,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+
 /**
  * Created by yangy on 2016/9/14.
  */
@@ -38,9 +44,10 @@ public class EasyHttpClientManager {
 	private OkHttpClient mCacheLongOKHttpClient;
 
 	private Context mContext;
-	private int mCacheType;
 	private boolean mDebug;
 	private Handler mHandler;
+	private Gson mGson;
+	private EasyHttpConfig mConfig;
 
 	private static final ReentrantLock LOCK = new ReentrantLock();
 
@@ -48,8 +55,8 @@ public class EasyHttpClientManager {
 	 * constructor.
 	 */
 	private EasyHttpClientManager() {
-		mCacheType = EasyCacheType.CACHE_TYPE_NO_SETTING;
 		mDebug = false;
+		mGson = new Gson();
 	}
 
 	/**
@@ -77,6 +84,49 @@ public class EasyHttpClientManager {
 	public void init(Context context) {
 		mContext = context;
 		mHandler = new Handler(Looper.getMainLooper());
+		// default http config.
+		mConfig = new EasyHttpConfig.Builder()
+				.setCacheDir(EasyCacheDir.SD_PATH + mContext.getPackageName())
+				.setCacheTime(EasyCacheTime.CACHE_TIME_SHORT, EasyCacheTime.CACHE_TIME_MID, EasyCacheTime.CACHE_TIME_LONG)
+				.setCacheMaxSize(5 * 1024 * 1024, 5 * 1024 * 1024, 20 * 1024 * 1024)
+				.setGlobalCacheType(EasyCacheType.CACHE_TYPE_NO_SETTING)
+				.build();
+	}
+
+	/**
+	 * 初始化上下文，带配置.
+	 * @param context
+	 * @param config
+	 */
+	public void init(Context context, EasyHttpConfig config) {
+		init(context);
+		if (!TextUtils.isEmpty(config.getCacheDir())) {
+			mConfig.setCacheDir(config.getCacheDir());
+		}
+		if (config.getCacheShortTime() > 0) {
+			mConfig.setCacheShortTime(config.getCacheShortTime());
+		}
+		if (config.getCacheMidTime() > 0) {
+			mConfig.setCacheMidTime(config.getCacheMidTime());
+		}
+		if (config.getCacheLongTime() > 0) {
+			mConfig.setCacheLongTime(config.getCacheLongTime());
+		}
+		if (config.getCacheShortMaxSize() > 0) {
+			mConfig.setCacheShortMaxSize(config.getCacheShortMaxSize());
+		}
+		if (config.getCacheMidMaxSize() > 0) {
+			mConfig.setCacheMidMaxSize(config.getCacheMidMaxSize());
+		}
+		if (config.getCacheLongMaxSize() > 0) {
+			mConfig.setCacheLongMaxSize(config.getCacheLongMaxSize());
+		}
+		if (config.getGlobalCacheType() > -1) {
+			mConfig.setGlobalCacheType(config.getGlobalCacheType());
+		}
+		if (!TextUtils.isEmpty(config.getUserAgent())) {
+			mConfig.setUserAgent(config.getUserAgent());
+		}
 	}
 
 	/**
@@ -85,14 +135,6 @@ public class EasyHttpClientManager {
 	 */
 	public Context getContext() {
 		return mContext;
-	}
-
-	/**
-	 * 设定缓存类型.
-	 * @param cacheType
-	 */
-	public void setCacheType(int cacheType) {
-		mCacheType = cacheType;
 	}
 
 	/**
@@ -109,6 +151,14 @@ public class EasyHttpClientManager {
 	 */
 	public boolean isDebug() {
 		return mDebug;
+	}
+
+	/**
+	 * 获取Gson对象.
+	 * @return
+	 */
+	public Gson getGson() {
+		return mGson;
 	}
 
 	/**
@@ -146,6 +196,9 @@ public class EasyHttpClientManager {
 			OkHttpClient.Builder builder = new OkHttpClient()
 					.newBuilder()
 					.addNetworkInterceptor(interceptor);
+			if (!TextUtils.isEmpty(mConfig.getUserAgent())) {
+				builder.addNetworkInterceptor(new EasyUserAgentInterceptor(mConfig.getUserAgent()));
+			}
 			if (mDebug) {
 				builder.addNetworkInterceptor(new EasyLoggingInterceptor());
 			}
@@ -163,16 +216,19 @@ public class EasyHttpClientManager {
 	 */
 	private synchronized OkHttpClient getCacheShortOkHttpClient() {
 		if (mCacheShortOKHttpClient == null) {
-			File httpCacheDirectory = new File(EasyCacheDir.CACHE_SHORT_DIR);
+			File httpCacheDirectory = new File(mConfig.getCacheDir() + EasyCacheDir.CACHE_SHORT_DIR);
 			if (!httpCacheDirectory.exists()) {
 				httpCacheDirectory.mkdirs();
 			}
-			Cache cache = new Cache(httpCacheDirectory, 5 * 1024 * 1024);
+			Cache cache = new Cache(httpCacheDirectory, mConfig.getCacheShortMaxSize());
 			EasyCacheInterceptor interceptor = new EasyCacheInterceptor(EasyCacheType.CACHE_TYPE_SHORT);
 
 			OkHttpClient.Builder builder = new OkHttpClient().newBuilder()
 					.addNetworkInterceptor(interceptor)
 					.cache(cache);
+			if (!TextUtils.isEmpty(mConfig.getUserAgent())) {
+				builder.addNetworkInterceptor(new EasyUserAgentInterceptor(mConfig.getUserAgent()));
+			}
 			if (mDebug) {
 				builder.addNetworkInterceptor(new EasyLoggingInterceptor());
 			}
@@ -190,16 +246,19 @@ public class EasyHttpClientManager {
 	 */
 	private synchronized OkHttpClient getCacheMidOkHttpClient() {
 		if (mCacheMidOKHttpClient == null) {
-			File httpCacheDirectory = new File(EasyCacheDir.CACHE_MID_DIR);
+			File httpCacheDirectory = new File(mConfig.getCacheDir() + EasyCacheDir.CACHE_MID_DIR);
 			if (!httpCacheDirectory.exists()) {
 				httpCacheDirectory.mkdirs();
 			}
-			Cache cache = new Cache(httpCacheDirectory, 10 * 1024 * 1024);
+			Cache cache = new Cache(httpCacheDirectory, mConfig.getCacheMidMaxSize());
 			EasyCacheInterceptor interceptor = new EasyCacheInterceptor(EasyCacheType.CACHE_TYPE_MID);
 
 			OkHttpClient.Builder builder = new OkHttpClient().newBuilder()
 					.addNetworkInterceptor(interceptor)
 					.cache(cache);
+			if (!TextUtils.isEmpty(mConfig.getUserAgent())) {
+				builder.addNetworkInterceptor(new EasyUserAgentInterceptor(mConfig.getUserAgent()));
+			}
 			if (mDebug) {
 				builder.addNetworkInterceptor(new EasyLoggingInterceptor());
 			}
@@ -217,17 +276,20 @@ public class EasyHttpClientManager {
 	 */
 	private synchronized OkHttpClient getCacheLongOkHttpClient() {
 		if (mCacheLongOKHttpClient == null) {
-			File httpCacheDirectory = new File(EasyCacheDir.CACHE_LONG_DIR);
+			File httpCacheDirectory = new File(mConfig.getCacheDir() + EasyCacheDir.CACHE_LONG_DIR);
 			if (!httpCacheDirectory.exists()) {
 				httpCacheDirectory.mkdirs();
 			}
-			Cache cache = new Cache(httpCacheDirectory, 20 * 1024 * 1024);
+			Cache cache = new Cache(httpCacheDirectory, mConfig.getCacheLongMaxSize());
 
 			EasyCacheInterceptor interceptor = new EasyCacheInterceptor(EasyCacheType.CACHE_TYPE_LONG);
 
 			OkHttpClient.Builder builder = new OkHttpClient().newBuilder()
 					.addNetworkInterceptor(interceptor)
 					.cache(cache);
+			if (!TextUtils.isEmpty(mConfig.getUserAgent())) {
+				builder.addNetworkInterceptor(new EasyUserAgentInterceptor(mConfig.getUserAgent()));
+			}
 			if (mDebug) {
 				builder.addNetworkInterceptor(new EasyLoggingInterceptor());
 			}
@@ -269,7 +331,7 @@ public class EasyHttpClientManager {
 
 		// 接口没有单独设定缓存类型，使用全局缓存类型.
 		if (cacheType == EasyCacheType.CACHE_TYPE_NO_SETTING) {
-			cacheType = mCacheType;
+			cacheType = mConfig.getGlobalCacheType();
 		}
 
 		// 异步.

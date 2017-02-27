@@ -15,7 +15,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -155,8 +154,9 @@ public class EasyDownloadManager {
 
 			task.cancel();
 
-			if (!TextUtils.isEmpty(taskEntity.getFilePath()) && !TextUtils.isEmpty(taskEntity.getFileName())) {
-				File temp = new File(taskEntity.getFilePath(), taskEntity.getFileName());
+			if (!TextUtils.isEmpty(taskEntity.getSaveDirPath())
+					&& !TextUtils.isEmpty(taskEntity.getSaveFileName())) {
+				File temp = new File(taskEntity.getSaveDirPath(), taskEntity.getSaveFileName());
 				if (temp.exists()) {
 					if (temp.delete()) {
 						if (BuildConfig.DEBUG)
@@ -167,15 +167,34 @@ public class EasyDownloadManager {
 		}
 	}
 
-	public EasyDownloadTask getTask(String id) {
-		EasyDownloadTask currTask = mCurrentTaskList.get(id);
+	public EasyDownloadTask getTask(String taskId) {
+		EasyDownloadTask currTask = mCurrentTaskList.get(taskId);
 		if (currTask == null) {
-			EasyTaskEntity entity = EasyDaoManager.instance().queryWithId(id);
+			EasyTaskEntity entity = EasyDaoManager.instance().queryWithId(taskId);
 			if (entity != null) {
 				int status = entity.getTaskStatus();
 				currTask = new EasyDownloadTask(entity);
 				if (status != EasyTaskStatus.TASK_STATUS_FINISH) {
-					mCurrentTaskList.put(id, currTask);
+					mCurrentTaskList.put(taskId, currTask);
+				}
+			}
+		}
+
+		// 如果下载完成,判断本地是否被删除.
+		if (currTask != null) {
+			EasyTaskEntity entity = currTask.getTaskEntity();
+			int status = entity.getTaskStatus();
+			if (status == EasyTaskStatus.TASK_STATUS_FINISH) {
+				String saveDirPath = entity.getSaveDirPath();
+				String saveFileName = entity.getSaveFileName();
+				if (TextUtils.isEmpty(saveDirPath) || TextUtils.isEmpty(saveFileName)) {
+					return currTask;
+				}
+
+				File file = new File(saveDirPath, saveFileName);
+				if (!file.exists()) {
+					mCurrentTaskList.remove(taskId);
+					EasyDaoManager.instance().delete(entity);
 				}
 			}
 		}
@@ -186,7 +205,7 @@ public class EasyDownloadManager {
 	public boolean isPauseTask(String id) {
 		EasyTaskEntity entity = EasyDaoManager.instance().queryWithId(id);
 		if (entity != null) {
-			File file = new File(entity.getFilePath(), entity.getFilePath());
+			File file = new File(entity.getSaveDirPath(), entity.getSaveFileName());
 			if (file.exists()) {
 				long totalSize = entity.getTotalSize();
 				return totalSize > 0 && file.length() < totalSize;
@@ -198,7 +217,7 @@ public class EasyDownloadManager {
 	public boolean isFinishTask(String id) {
 		EasyTaskEntity entity = EasyDaoManager.instance().queryWithId(id);
 		if (entity != null) {
-			File file = new File(entity.getFilePath(), entity.getFileName());
+			File file = new File(entity.getSaveDirPath(), entity.getSaveFileName());
 			if (file.exists()) {
 				return file.length() == entity.getTotalSize();
 			}

@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.yang.easyhttp.cache.EasyCacheType;
 import com.yang.easyhttp.callback.EasyCallback;
+import com.yang.easyhttp.config.EasyHttpConfig;
 import com.yang.easyhttp.download.EasyDownloadManager;
 import com.yang.easyhttp.manager.EasyHttpClientManager;
 import com.yang.easyhttp.request.EasyRequestParams;
@@ -20,6 +21,10 @@ public class EasyHttpClient {
 		EasyHttpClientManager.getInstance().init(context);
 	}
 
+	public static void init(Context context, EasyHttpConfig config) {
+		EasyHttpClientManager.getInstance().init(context, config);
+	}
+
 	/**
 	 * Download environment init.
 	 * Make sure the init fuction is only called once.
@@ -28,21 +33,8 @@ public class EasyHttpClient {
 		EasyDownloadManager.getInstance().init(EasyHttpClientManager.getInstance().getContext());
 	}
 
-	/**
-	 * Download environment init.
-	 * Make sure the init fuction is only called once.
-	 * @param threadCount
-	 */
 	public static void initDownloadEnvironment(int threadCount) {
 		EasyDownloadManager.getInstance().init(EasyHttpClientManager.getInstance().getContext(), threadCount);
-	}
-
-	/**
-	 * set global cache type.
-	 * @param cacheType
-	 */
-	public static void setCacheType(int cacheType) {
-		EasyHttpClientManager.getInstance().setCacheType(cacheType);
 	}
 
 	/**
