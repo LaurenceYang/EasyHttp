@@ -30,8 +30,8 @@ repositories {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
-    compile project(':easy-http-library')
-//    compile 'com.yang.easyhttp:easyhttp:0.5.1'
+//    compile project(':easy-http-library')
+    compile 'com.yang.easyhttp:easyhttp:0.6.0'
 
     compile 'com.android.support:appcompat-v7:23.0.0'
     compile 'com.android.support:recyclerview-v7:23.0.0'
