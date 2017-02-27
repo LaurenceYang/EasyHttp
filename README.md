@@ -20,8 +20,7 @@
 
 
 ## ScreenShot
-
-
+![main](https://github.com/LaurenceYang/EasyHttp/blob/master/assert/mainanddownload.png) 
 
 ## 使用指南
 
