@@ -52,6 +52,16 @@ public class MainActivity extends AppCompatActivity {
                         "Upload",
                         "上传文件请求",
                 },
+                {
+                        "5",
+                        "Get(RxJava方式)",
+                        "RxJava Get请求",
+                },
+                {
+                        "6",
+                        "Post(RxJava方式)",
+                        "RxJava Post请求 ",
+                },
         };
 
         for (int i = 0; i < data.length; i++) {

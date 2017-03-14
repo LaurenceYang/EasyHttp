@@ -173,6 +173,43 @@ EasyHttp提供`EasyHttpClient.uploadFile`接口用来上传文件。接口如下
 ```
 public static <T> void uploadFile(String url, String filePath, EasyCallback<T> callback) 
 ```
-###TODO LIST
 
-支持RXJAVA</br>
+### 支持RXJAVA
+```
+ RxEasyHttp.get(url)
+                .doOnSubscribe(new Consumer<Subscription>() {
+                    @Override
+                    public void accept(@NonNull Subscription subscription) throws Exception {
+                        dialog.show();
+                        body.setText("");
+                    }
+                })
+                .map(new Function<Response, String>() {
+                    @Override
+                    public String apply(@NonNull Response response) throws Exception {
+                        return response.body().string();
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new FlowableSubscriber<String>() {
+                    @Override
+                    public void onSubscribe(Subscription s) {
+                        s.request(Long.MAX_VALUE);
+                    }
+
+                    @Override
+                    public void onNext(String response) {
+                        body.setText(response);
+                    }
+
+                    @Override
+                    public void onError(Throwable t) {
+                        body.setText(t.toString());
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        dialog.cancel();
+                    }
+                });
+```

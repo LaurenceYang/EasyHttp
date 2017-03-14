@@ -26,6 +26,8 @@
         <activity android:name=".activity.PostActivity"/>
         <activity android:name=".activity.DownloadActivity"/>
         <activity android:name=".activity.UploadActivity"/>
+        <activity android:name=".activity.RxGetActivity"/>
+        <activity android:name=".activity.RxPostActivity"/>
 
     </application>
 

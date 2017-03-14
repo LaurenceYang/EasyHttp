@@ -162,6 +162,14 @@ public class EasyHttpClientManager {
 	}
 
 	/**
+	 * 获取配置.
+	 * @return
+	 */
+	public EasyHttpConfig getConfig() {
+		return mConfig;
+	}
+
+	/**
 	 * getOkHttpClient.
 	 * @param cacheType
 	 * @return
@@ -306,7 +314,7 @@ public class EasyHttpClientManager {
 	 * @param params
 	 * @return
 	 */
-	private String buildUrl(String url, EasyRequestParams params) {
+	public String buildUrl(String url, EasyRequestParams params) {
 		if (params != null) {
 			return url + "&" + params.toString();
 		} else {

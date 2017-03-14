@@ -11,6 +11,8 @@ import android.widget.TextView;
 
 import com.yang.demo.activity.GetActivity;
 import com.yang.demo.activity.PostActivity;
+import com.yang.demo.activity.RxGetActivity;
+import com.yang.demo.activity.RxPostActivity;
 import com.yang.demo.entity.MainEntity;
 import com.yang.demo.R;
 import com.yang.demo.activity.DownloadActivity;
@@ -69,6 +71,14 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
                         break;
                     case 4:
                         intent = new Intent(mContext, UploadActivity.class);
+                        mContext.startActivity(intent);
+                        break;
+                    case 5:
+                        intent = new Intent(mContext, RxGetActivity.class);
+                        mContext.startActivity(intent);
+                        break;
+                    case 6:
+                        intent = new Intent(mContext, RxPostActivity.class);
                         mContext.startActivity(intent);
                         break;
                     default:

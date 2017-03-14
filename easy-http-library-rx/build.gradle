@@ -1,6 +1,5 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.novoda.bintray-release'
-apply plugin: 'org.greenrobot.greendao'
 
 android {
     compileSdkVersion 23
@@ -11,6 +10,8 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
@@ -23,25 +24,23 @@ android {
     }
 }
 
-repositories {
-    jcenter()
-}
-
 publish {
     userOrg = 'laurenceyanger'
-    groupId = 'com.yang.easyhttp'
-    artifactId = 'easyhttp'
-    uploadName = 'easyhttp-laurenceyanger'
+    groupId = 'com.yang.rxeasyhttp'
+    artifactId = 'rxeasyhttp'
     publishVersion = '0.6.0'
-    desc = 'network module for android,based on okhttp'
+    desc = 'rxjava support for easyhttp'
     website = 'https://github.com/LaurenceYang/EasyHttp'
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
+    compile project(":easy-http-library")
 
-    compile 'com.squareup.okhttp3:okhttp:3.6.0'
-    compile 'com.google.code.gson:gson:2.7'
-    compile 'org.greenrobot:greendao:3.2.0'
+    compile 'io.reactivex.rxjava2:rxjava:2.0.7'
+    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    compile 'org.reactivestreams:reactive-streams:1.0.0'
+
+    compile 'com.android.support:support-annotations:23.3.0'
 }

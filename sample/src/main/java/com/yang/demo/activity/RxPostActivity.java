@@ -12,18 +12,25 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.yang.demo.R;
-import com.yang.easyhttp.EasyHttpClient;
-import com.yang.easyhttp.callback.EasyStringCallback;
 import com.yang.easyhttp.request.EasyRequestParams;
+import com.yang.easyhttprx.RxEasyHttp;
+
+import org.reactivestreams.Subscription;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.reactivex.FlowableSubscriber;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import okhttp3.Response;
 
 /**
  * Created by yangyang on 2017/2/17.
  */
-public class PostActivity extends AppCompatActivity {
+public class RxPostActivity extends AppCompatActivity {
     @BindView(R.id.comment)
     EditText comment;
     @BindView(R.id.submit)
@@ -52,32 +59,41 @@ public class PostActivity extends AppCompatActivity {
         EasyRequestParams params = new EasyRequestParams();
         params.put("content", content.toString());
 
-        EasyHttpClient.post("http://book.2345.com/app/index.php?c=version&a=feedback",
-                params,
-                new EasyStringCallback() {
+        String url = "http://book.km.com/app/index.php?c=version&a=feedback";
+
+        RxEasyHttp.post(url, params)
+                .map(new Function<Response, String>() {
                     @Override
-                    public void onStart() {
+                    public String apply(@NonNull Response response) throws Exception {
+                        return response.body().string();
+                    }
+                })
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new FlowableSubscriber<String>() {
+
+                    @Override
+                    public void onSubscribe(Subscription s) {
+                        s.request(Long.MAX_VALUE);
                         dialog.show();
                     }
 
                     @Override
-                    public void onFinish() {
+                    public void onNext(String s) {
+                        Toast.makeText(RxPostActivity.this, "提交成功", Toast.LENGTH_LONG).show();
+                        result.setText(s);
+                    }
+
+                    @Override
+                    public void onError(Throwable t) {
+                        Toast.makeText(RxPostActivity.this, "提交失败", Toast.LENGTH_LONG).show();
+                        result.setText(t.getMessage());
+                    }
+
+                    @Override
+                    public void onComplete() {
                         dialog.cancel();
                     }
-
-                    @Override
-                    public void onSuccess(String content) {
-                        Toast.makeText(PostActivity.this, "提交成功", Toast.LENGTH_LONG).show();
-                        result.setText(content);
-                    }
-
-                    @Override
-                    public void onFailure(Throwable error, String content) {
-                        Toast.makeText(PostActivity.this, "提交失败", Toast.LENGTH_LONG).show();
-                        result.setText(content + "\n" + error.getMessage());
-                    }
-                }
-        );
+                });
     }
 
 }

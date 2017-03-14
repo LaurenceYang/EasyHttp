@@ -1,1 +1,1 @@
-include ':sample', ':easy-http-library'
+include ':sample', ':easy-http-library', ':easy-http-library-rx'

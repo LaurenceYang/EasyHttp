@@ -27,7 +27,7 @@ public class EasyHttpClient {
 
 	/**
 	 * Download environment init.
-	 * Make sure the init fuction is only called once.
+	 * Make sure the init function is only called once.
 	 */
 	public static void initDownloadEnvironment() {
 		EasyDownloadManager.getInstance().init(EasyHttpClientManager.getInstance().getContext());
