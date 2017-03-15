@@ -28,7 +28,7 @@ publish {
     userOrg = 'laurenceyanger'
     groupId = 'com.yang.rxeasyhttp'
     artifactId = 'rxeasyhttp'
-    publishVersion = '0.6.0'
+    publishVersion = '0.7.0'
     desc = 'rxjava support for easyhttp'
     website = 'https://github.com/LaurenceYang/EasyHttp'
 }

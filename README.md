@@ -1,11 +1,12 @@
 # EasyHttp
 [![License](https://img.shields.io/badge/license-Apache%202-green.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Download](https://api.bintray.com/packages/laurenceyanger/maven/easyhttp-laurenceyanger/images/download.svg) ](https://bintray.com/laurenceyanger/maven/easyhttp-laurenceyanger/_latestVersion)
+    Support RxJava[![Download](https://api.bintray.com/packages/laurenceyanger/maven/rxeasyhttp/images/download.svg) ](https://bintray.com/laurenceyanger/maven/rxeasyhttp/_latestVersion)
 ## 特性
-* 支持Get请求
-* 支持Post请求
+* 支持Get/Post请求
 * Get/Post请求完美支持String，Json，自定义对象返回
 * Get支持全局缓存设置及不同请求不同缓存设置
+* 支持Callback和RxJava2两种形式回调
 * 支持文件下载及下载管理
 * 支持文件下载的断点续传
 * 支持文件上传
@@ -15,6 +16,7 @@
 
 
 ## 最新版本
+* v0.7.0 - 2017.03.15 - Get/Post请求支持RxJava2
 * v0.6.0 - 2017.02.27 - Get/Post请求完美支持String，Json，自定义对象返回；下载模块添加异常检测及容错处理
 * v0.5.0 - 2017.02.21 - 初版发布，支持Get、Post、下载、上传、断点续传、不同缓存策略等
 
@@ -34,7 +36,7 @@ jcenter()
 在module的`build.gradle`文件的`dependencies`区域内添加如下所示配置：
 
 ```java
-compile 'com.yang.easyhttp:easyhttp:0.6.0'
+compile 'com.yang.easyhttp:easyhttp:0.7.0'
 ```
 
 ## 初始化
@@ -174,42 +176,83 @@ EasyHttp提供`EasyHttpClient.uploadFile`接口用来上传文件。接口如下
 public static <T> void uploadFile(String url, String filePath, EasyCallback<T> callback) 
 ```
 
-### 支持RXJAVA
+### 支持RxJava
+EasyHttp提供RxJava2的扩展，如需使用RxJava2回调方式，
+在module的`build.gradle`文件的`dependencies`区域内如下所示进行配置：
+                                     
+```java
+compile 'com.yang.easyhttp:easyhttp:0.7.0'
+compile 'com.yang.rxeasyhttp:rxeasyhttp:0.7.0'
+
 ```
- RxEasyHttp.get(url)
-                .doOnSubscribe(new Consumer<Subscription>() {
-                    @Override
-                    public void accept(@NonNull Subscription subscription) throws Exception {
-                        dialog.show();
-                        body.setText("");
-                    }
-                })
-                .map(new Function<Response, String>() {
-                    @Override
-                    public String apply(@NonNull Response response) throws Exception {
-                        return response.body().string();
-                    }
-                })
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new FlowableSubscriber<String>() {
-                    @Override
-                    public void onSubscribe(Subscription s) {
-                        s.request(Long.MAX_VALUE);
-                    }
+### Get请求的RxJava形式
+```
+ RxEasyHttp.get(url.toString(), new RxEasyStringConverter())
+     .doOnSubscribe(new Consumer<Subscription>() {
+         @Override
+         public void accept(@NonNull Subscription subscription) throws Exception {
+             dialog.show();
+             body.setText("");
+         }
+     })
+     .observeOn(AndroidSchedulers.mainThread())
+     .subscribe(new FlowableSubscriber<String>() {
+         @Override
+         public void onSubscribe(Subscription s) {
+             s.request(Long.MAX_VALUE);
+             dialog.show();
+             body.setText("");
+         }
 
-                    @Override
-                    public void onNext(String response) {
-                        body.setText(response);
-                    }
+         @Override
+         public void onNext(String response) {
+             body.setText(response);
+         }
 
-                    @Override
-                    public void onError(Throwable t) {
-                        body.setText(t.toString());
-                    }
+         @Override
+         public void onError(Throwable t) {
+             body.setText(t.toString());
+         }
 
-                    @Override
-                    public void onComplete() {
-                        dialog.cancel();
-                    }
-                });
+         @Override
+         public void onComplete() {
+             dialog.cancel();
+         }
+     });
+```
+### Post请求的RxJava形式
+```
+RxEasyHttp.post(url, params, new RxEasyCustomConverter<PostEntity>() {
+        @Override
+        public void doNothing() {}
+    })
+    .observeOn(AndroidSchedulers.mainThread())
+    .subscribe(new FlowableSubscriber<PostEntity>() {
+
+        @Override
+        public void onSubscribe(Subscription s) {
+            s.request(Long.MAX_VALUE);
+            dialog.show();
+        }
+
+        @Override
+        public void onNext(PostEntity entity) {
+            Toast.makeText(RxPostActivity.this, "提交成功", Toast.LENGTH_LONG).show();
+            result.setText("status : " + entity.getStatus() + "\n" +
+                    "message : " + entity.getMessage());
+
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            Toast.makeText(RxPostActivity.this, "提交失败", Toast.LENGTH_LONG).show();
+            result.setText(t.getMessage());
+            dialog.cancel();
+        }
+
+        @Override
+        public void onComplete() {
+            dialog.cancel();
+        }
+    });
 ```

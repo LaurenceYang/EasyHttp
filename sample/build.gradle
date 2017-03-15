@@ -26,13 +26,19 @@ android {
 repositories {
     jcenter()
 }
+repositories {
+    maven {
+        url  "http://dl.bintray.com/laurenceyanger/maven"
+    }
+}
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
-    compile project(':easy-http-library')
-    compile project(':easy-http-library-rx')
-//    compile 'com.yang.easyhttp:easyhttp:0.6.0'
+//    compile project(':easy-http-library')
+//    compile project(':easy-http-library-rx')
+    compile 'com.yang.easyhttp:easyhttp:0.7.0'
+    compile 'com.yang.rxeasyhttp:rxeasyhttp:0.7.0'
 
     compile 'com.android.support:appcompat-v7:23.0.0'
     compile 'com.android.support:recyclerview-v7:23.0.0'
