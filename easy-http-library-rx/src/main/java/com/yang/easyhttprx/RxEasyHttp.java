@@ -2,10 +2,10 @@ package com.yang.easyhttprx;
 
 import com.yang.easyhttp.cache.EasyCacheType;
 import com.yang.easyhttp.request.EasyRequestParams;
+import com.yang.easyhttprx.converter.RxEasyConverter;
 import com.yang.easyhttprx.manager.RxEasyHttpManager;
 
 import io.reactivex.Flowable;
-import okhttp3.Response;
 
 /**
  * Created by yangy on 2017/3/14.
@@ -17,20 +17,20 @@ public class RxEasyHttp {
 	 * @param url
 	 * @return
 	 */
-	public static Flowable<Response> get(String url) {
-		return get(url, null);
+	public static <T> Flowable<T> get(String url, RxEasyConverter<T> converter) {
+		return get(url, null, converter);
 	}
 
-	public static Flowable<Response> get(String url, EasyRequestParams easyRequestParams) {
-		return RxEasyHttpManager.getInstance().get(url, easyRequestParams, EasyCacheType.CACHE_TYPE_NO_SETTING);
+	public static <T> Flowable<T> get(String url, EasyRequestParams easyRequestParams, RxEasyConverter<T> converter) {
+		return RxEasyHttpManager.getInstance().get(url, easyRequestParams, EasyCacheType.CACHE_TYPE_NO_SETTING, converter);
 	}
 
-	public static Flowable<Response> get(String url, int cacheType) {
-		return get(url, null, cacheType);
+	public static <T> Flowable<T> get(String url, int cacheType, RxEasyConverter<T> converter) {
+		return get(url, null, cacheType, converter);
 	}
 
-	public static Flowable<Response> get(String url, EasyRequestParams easyRequestParams, int cacheType) {
-		return RxEasyHttpManager.getInstance().get(url, easyRequestParams, cacheType);
+	public static <T> Flowable<T> get(String url, EasyRequestParams easyRequestParams, int cacheType, RxEasyConverter<T> converter) {
+		return RxEasyHttpManager.getInstance().get(url, easyRequestParams, cacheType, converter);
 	}
 
 	/**
@@ -38,8 +38,8 @@ public class RxEasyHttp {
 	 * @param url
 	 * @return
 	 */
-	public static Flowable<Response> post(String url, EasyRequestParams easyRequestParams) {
-		return RxEasyHttpManager.getInstance().post(url, easyRequestParams);
+	public static <T> Flowable<T> post(String url, EasyRequestParams easyRequestParams, RxEasyConverter<T> converter) {
+		return RxEasyHttpManager.getInstance().post(url, easyRequestParams, converter);
 	}
 
 	/**
@@ -48,7 +48,7 @@ public class RxEasyHttp {
 	 * @param filePath
 	 * @return
 	 */
-	public static Flowable<Response> uploadFile(String url, String filePath) {
-		return RxEasyHttpManager.getInstance().uploadFile(url, filePath);
+	public static <T> Flowable<T> uploadFile(String url, String filePath, RxEasyConverter<T> converter) {
+		return RxEasyHttpManager.getInstance().uploadFile(url, filePath, converter);
 	}
 }

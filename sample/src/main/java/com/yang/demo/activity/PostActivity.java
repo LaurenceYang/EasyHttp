@@ -12,8 +12,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.yang.demo.R;
+import com.yang.demo.entity.PostEntity;
 import com.yang.easyhttp.EasyHttpClient;
-import com.yang.easyhttp.callback.EasyStringCallback;
+import com.yang.easyhttp.callback.EasyCustomCallback;
 import com.yang.easyhttp.request.EasyRequestParams;
 
 import butterknife.BindView;
@@ -54,7 +55,7 @@ public class PostActivity extends AppCompatActivity {
 
         EasyHttpClient.post("http://book.2345.com/app/index.php?c=version&a=feedback",
                 params,
-                new EasyStringCallback() {
+                new EasyCustomCallback<PostEntity>() {
                     @Override
                     public void onStart() {
                         dialog.show();
@@ -66,9 +67,10 @@ public class PostActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onSuccess(String content) {
+                    public void onSuccess(PostEntity content) {
                         Toast.makeText(PostActivity.this, "提交成功", Toast.LENGTH_LONG).show();
-                        result.setText(content);
+                        result.setText("status : " + content.getStatus() + "\n" +
+                                "message : " + content.getMessage());
                     }
 
                     @Override

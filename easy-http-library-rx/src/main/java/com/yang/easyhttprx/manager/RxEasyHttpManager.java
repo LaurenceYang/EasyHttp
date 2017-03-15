@@ -3,6 +3,7 @@ package com.yang.easyhttprx.manager;
 import com.yang.easyhttp.cache.EasyCacheType;
 import com.yang.easyhttp.manager.EasyHttpClientManager;
 import com.yang.easyhttp.request.EasyRequestParams;
+import com.yang.easyhttprx.converter.RxEasyConverter;
 
 import java.io.File;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,7 +42,7 @@ public class RxEasyHttpManager {
 	 * @param cacheType
 	 * @return
 	 */
-	public Flowable<Response> get(String url, EasyRequestParams requestParams, int cacheType) {
+	public <T> Flowable<T> get(String url, EasyRequestParams requestParams, int cacheType, RxEasyConverter<T> rxEasyConverter) {
 		final Request request = new Request.Builder().url(EasyHttpClientManager.getInstance().buildUrl(url, requestParams)).build();
 		// 接口没有单独设定缓存类型，使用全局缓存类型.
 		if (cacheType == EasyCacheType.CACHE_TYPE_NO_SETTING) {
@@ -50,7 +51,7 @@ public class RxEasyHttpManager {
 
 		Call call = EasyHttpClientManager.getInstance().getOkHttpClient(cacheType).newCall(request);
 
-		return Flowable.create(new CallFlowableOnSubscribe(call), BackpressureStrategy.BUFFER)
+		return Flowable.create(new CallFlowableOnSubscribe(call, rxEasyConverter), BackpressureStrategy.BUFFER)
 				.subscribeOn(Schedulers.io());
 	}
 
@@ -60,7 +61,7 @@ public class RxEasyHttpManager {
 	 * @param requestParams
 	 * @return
 	 */
-	public Flowable<Response> post(String url, EasyRequestParams requestParams) {
+	public <T> Flowable<T> post(String url, EasyRequestParams requestParams, RxEasyConverter<T> rxEasyConverter) {
 		FormBody.Builder builder = new FormBody.Builder();
 		ConcurrentHashMap<String, String> paramsMap = requestParams.getUrlParams();
 		for (ConcurrentHashMap.Entry<String, String> entry : paramsMap.entrySet()) {
@@ -75,7 +76,7 @@ public class RxEasyHttpManager {
 
 		Call call = EasyHttpClientManager.getInstance().getOkHttpClient(EasyCacheType.CACHE_TYPE_DEFAULT).newCall(request);
 
-		return Flowable.create(new CallFlowableOnSubscribe(call), BackpressureStrategy.BUFFER)
+		return Flowable.create(new CallFlowableOnSubscribe(call,rxEasyConverter), BackpressureStrategy.BUFFER)
 				.subscribeOn(Schedulers.io());
 	}
 
@@ -85,7 +86,7 @@ public class RxEasyHttpManager {
 	 * @param filePath
 	 * @return
 	 */
-	public Flowable<Response> uploadFile(String url, String filePath) {
+	public <T> Flowable<T> uploadFile(String url, String filePath, RxEasyConverter<T> rxEasyConverter) {
 		File file = new File(filePath);
 		RequestBody requestBody = RequestBody.create(MediaType.parse("application/octet-stream"), file);
 
@@ -96,36 +97,36 @@ public class RxEasyHttpManager {
 
 		Call call = EasyHttpClientManager.getInstance().getOkHttpClient(EasyCacheType.CACHE_TYPE_DEFAULT).newCall(request);
 
-		return Flowable.create(new CallFlowableOnSubscribe(call), BackpressureStrategy.BUFFER)
+		return Flowable.create(new CallFlowableOnSubscribe(call, rxEasyConverter), BackpressureStrategy.BUFFER)
 				.subscribeOn(Schedulers.io());
 	}
 
-	class CallFlowableOnSubscribe implements FlowableOnSubscribe<Response> {
+	class CallFlowableOnSubscribe<T> implements FlowableOnSubscribe<T> {
 		private Call call;
+		private RxEasyConverter<T> rxEasyConverter;
 
-		public CallFlowableOnSubscribe(Call call) {
+		public CallFlowableOnSubscribe(Call call, RxEasyConverter<T> rxEasyConverter) {
 			this.call = call;
+			this.rxEasyConverter = rxEasyConverter;
 		}
 
 		@Override
-		public void subscribe(FlowableEmitter<Response> e) throws Exception {
+		public void subscribe(FlowableEmitter<T> e) throws Exception {
 			try {
 				Response response = call.execute();
 
 				if (!e.isCancelled()) {
 					if (response.isSuccessful()) {
-						e.onNext(response);
+						e.onNext(rxEasyConverter.convert(response.body().string()));
 					} else {
 						e.onError(new Throwable("response is unsuccessful"));
 					}
 				}
-			}catch (Throwable t) {
+			} catch (Throwable t) {
 				if (!e.isCancelled()) {
 					e.onError(t);
 				}
-			}
-
-			if (!e.isCancelled()) {
+			} finally {
 				e.onComplete();
 			}
 		}

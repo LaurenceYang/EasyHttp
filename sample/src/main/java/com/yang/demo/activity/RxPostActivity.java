@@ -12,8 +12,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.yang.demo.R;
+import com.yang.demo.entity.PostEntity;
 import com.yang.easyhttp.request.EasyRequestParams;
 import com.yang.easyhttprx.RxEasyHttp;
+import com.yang.easyhttprx.converter.RxEasyCustomConverter;
 
 import org.reactivestreams.Subscription;
 
@@ -22,10 +24,6 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import io.reactivex.FlowableSubscriber;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.annotations.NonNull;
-import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
-import okhttp3.Response;
 
 /**
  * Created by yangyang on 2017/2/17.
@@ -61,15 +59,14 @@ public class RxPostActivity extends AppCompatActivity {
 
         String url = "http://book.km.com/app/index.php?c=version&a=feedback";
 
-        RxEasyHttp.post(url, params)
-                .map(new Function<Response, String>() {
+        RxEasyHttp.post(url, params, new RxEasyCustomConverter<PostEntity>() {
                     @Override
-                    public String apply(@NonNull Response response) throws Exception {
-                        return response.body().string();
+                    public void doNothing() {
+                        // 防止范型类型擦除引起范型类型不能正确获取问题.
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new FlowableSubscriber<String>() {
+                .subscribe(new FlowableSubscriber<PostEntity>() {
 
                     @Override
                     public void onSubscribe(Subscription s) {
@@ -78,15 +75,18 @@ public class RxPostActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onNext(String s) {
+                    public void onNext(PostEntity entity) {
                         Toast.makeText(RxPostActivity.this, "提交成功", Toast.LENGTH_LONG).show();
-                        result.setText(s);
+                        result.setText("status : " + entity.getStatus() + "\n" +
+                                "message : " + entity.getMessage());
+
                     }
 
                     @Override
                     public void onError(Throwable t) {
                         Toast.makeText(RxPostActivity.this, "提交失败", Toast.LENGTH_LONG).show();
                         result.setText(t.getMessage());
+                        dialog.cancel();
                     }
 
                     @Override
@@ -95,5 +95,6 @@ public class RxPostActivity extends AppCompatActivity {
                     }
                 });
     }
+
 
 }

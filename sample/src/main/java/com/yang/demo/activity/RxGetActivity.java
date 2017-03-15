@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import com.yang.demo.R;
 import com.yang.easyhttprx.RxEasyHttp;
+import com.yang.easyhttprx.converter.RxEasyStringConverter;
 
 import org.reactivestreams.Subscription;
 
@@ -23,8 +24,6 @@ import io.reactivex.FlowableSubscriber;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
-import okhttp3.Response;
 
 /**
  * Created by yangyang on 2017/2/17.
@@ -57,7 +56,7 @@ public class RxGetActivity extends AppCompatActivity {
             return;
         }
 
-        RxEasyHttp.get(url.toString())
+        RxEasyHttp.get(url.toString(), new RxEasyStringConverter())
                 .doOnSubscribe(new Consumer<Subscription>() {
                     @Override
                     public void accept(@NonNull Subscription subscription) throws Exception {
@@ -65,17 +64,13 @@ public class RxGetActivity extends AppCompatActivity {
                         body.setText("");
                     }
                 })
-                .map(new Function<Response, String>() {
-                    @Override
-                    public String apply(@NonNull Response response) throws Exception {
-                        return response.body().string();
-                    }
-                })
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new FlowableSubscriber<String>() {
                     @Override
                     public void onSubscribe(Subscription s) {
                         s.request(Long.MAX_VALUE);
+                        dialog.show();
+                        body.setText("");
                     }
 
                     @Override
