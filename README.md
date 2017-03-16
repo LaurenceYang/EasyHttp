@@ -188,13 +188,6 @@ compile 'com.yang.rxeasyhttp:rxeasyhttp:0.7.0'
 ### Get请求的RxJava形式
 ```
  RxEasyHttp.get(url.toString(), new RxEasyStringConverter())
-     .doOnSubscribe(new Consumer<Subscription>() {
-         @Override
-         public void accept(@NonNull Subscription subscription) throws Exception {
-             dialog.show();
-             body.setText("");
-         }
-     })
      .observeOn(AndroidSchedulers.mainThread())
      .subscribe(new FlowableSubscriber<String>() {
          @Override
