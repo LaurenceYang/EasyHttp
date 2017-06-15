@@ -181,8 +181,8 @@ EasyHttp提供RxJava2的扩展，如需使用RxJava2回调方式，
 在module的`build.gradle`文件的`dependencies`区域内如下所示进行配置：
                                      
 ```java
-compile 'com.yang.easyhttp:easyhttp:0.7.0'
-compile 'com.yang.rxeasyhttp:rxeasyhttp:0.7.0'
+compile 'com.yang.easyhttp:easyhttp:0.8.0'
+compile 'com.yang.rxeasyhttp:rxeasyhttp:0.8.0'
 
 ```
 ### Get请求的RxJava形式
