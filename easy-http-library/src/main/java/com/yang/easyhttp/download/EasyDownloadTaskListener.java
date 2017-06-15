@@ -4,17 +4,17 @@ package com.yang.easyhttp.download;
  * Created by yangy on 2017/2/16.
  */
 public interface EasyDownloadTaskListener {
+	/**
+	 * queue
+	 * @param downloadTask
+	 */
 	void onQueue(EasyDownloadTask downloadTask);
+
 	/**
 	 * connecting
 	 * @param downloadTask
      */
 	void onConnecting(EasyDownloadTask downloadTask);
-	/**
-	 * download start
-	 * @param downloadTask
-     */
-	void onDownloadStart(EasyDownloadTask downloadTask);
 
 	/**
 	 * downloading

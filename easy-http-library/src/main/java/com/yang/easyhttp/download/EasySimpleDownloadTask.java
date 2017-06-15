@@ -7,10 +7,9 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.yang.easyhttp.cache.EasyCacheType;
-import com.yang.easyhttp.db.EasyDaoManager;
 import com.yang.easyhttp.manager.EasyHttpClientManager;
-import com.yang.easyhttp.utils.EasyIOUtils;
 import com.yang.easyhttp.utils.EasyFileUtils;
+import com.yang.easyhttp.utils.EasyIOUtils;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -28,14 +27,14 @@ import okhttp3.ResponseBody;
 /**
  * Created by yangy on 2017/2/16.
  */
-public class EasyDownloadTask implements Runnable {
+public class EasySimpleDownloadTask implements Runnable {
 	private OkHttpClient mClient;
-	private EasyDownloadTaskListener mDownloadTaskListener;
+	private EasySimpleDownloadTaskListener mSimpleDownloadTaskListener;
 	private EasyTaskEntity mTaskEntity;
 	private Handler mHandler = new Handler(Looper.getMainLooper()) {
 		@Override
 		public void handleMessage(Message msg) {
-			if (mDownloadTaskListener == null) {
+			if (mSimpleDownloadTaskListener == null) {
 				return;
 			}
 			int code = msg.what;
@@ -43,31 +42,31 @@ public class EasyDownloadTask implements Runnable {
 				case EasyTaskStatus.TASK_STATUS_INIT:
 					break;
 				case EasyTaskStatus.TASK_STATUS_QUEUE:
-					mDownloadTaskListener.onQueue(EasyDownloadTask.this);
+					mSimpleDownloadTaskListener.onQueue(EasySimpleDownloadTask.this);
 					break;
 				case EasyTaskStatus.TASK_STATUS_CONNECTING:
-					mDownloadTaskListener.onConnecting(EasyDownloadTask.this);
+					mSimpleDownloadTaskListener.onConnecting(EasySimpleDownloadTask.this);
 					break;
 				case EasyTaskStatus.TASK_STATUS_DOWNLOADING:
-					mDownloadTaskListener.onDownloading(EasyDownloadTask.this);
+					mSimpleDownloadTaskListener.onDownloading(EasySimpleDownloadTask.this);
 					break;
 				case EasyTaskStatus.TASK_STATUS_PAUSE:
-					mDownloadTaskListener.onPause(EasyDownloadTask.this);
+					mSimpleDownloadTaskListener.onPause(EasySimpleDownloadTask.this);
 					break;
 				case EasyTaskStatus.TASK_STATUS_CANCEL:
-					mDownloadTaskListener.onCancel(EasyDownloadTask.this);
+					mSimpleDownloadTaskListener.onCancel(EasySimpleDownloadTask.this);
 					break;
 				case EasyTaskStatus.TASK_STATUS_LINK_FAILURE_ERROR:
-					mDownloadTaskListener.onError(EasyDownloadTask.this, EasyTaskStatus.TASK_STATUS_LINK_FAILURE_ERROR);
+					mSimpleDownloadTaskListener.onError(EasySimpleDownloadTask.this, EasyTaskStatus.TASK_STATUS_LINK_FAILURE_ERROR);
 					break;
 				case EasyTaskStatus.TASK_STATUS_REQUEST_ERROR:
-					mDownloadTaskListener.onError(EasyDownloadTask.this, EasyTaskStatus.TASK_STATUS_REQUEST_ERROR);
+					mSimpleDownloadTaskListener.onError(EasySimpleDownloadTask.this, EasyTaskStatus.TASK_STATUS_REQUEST_ERROR);
 					break;
 				case EasyTaskStatus.TASK_STATUS_STORAGE_ERROR:
-					mDownloadTaskListener.onError(EasyDownloadTask.this, EasyTaskStatus.TASK_STATUS_STORAGE_ERROR);
+					mSimpleDownloadTaskListener.onError(EasySimpleDownloadTask.this, EasyTaskStatus.TASK_STATUS_STORAGE_ERROR);
 					break;
 				case EasyTaskStatus.TASK_STATUS_FINISH:
-					mDownloadTaskListener.onFinish(EasyDownloadTask.this);
+					mSimpleDownloadTaskListener.onFinish(EasySimpleDownloadTask.this);
 					break;
 				default:
 					break;
@@ -75,7 +74,7 @@ public class EasyDownloadTask implements Runnable {
 		}
 	};
 
-	public EasyDownloadTask(EasyTaskEntity taskEntity) {
+	public EasySimpleDownloadTask(EasyTaskEntity taskEntity) {
 		mClient = EasyHttpClientManager.getInstance().getOkHttpClient(EasyCacheType.CACHE_TYPE_DEFAULT);
 		mTaskEntity = taskEntity;
 	}
@@ -84,8 +83,8 @@ public class EasyDownloadTask implements Runnable {
 		this.mClient = client;
 	}
 
-	public void setDownloadTaskListener(EasyDownloadTaskListener downloadTaskListener) {
-		this.mDownloadTaskListener = downloadTaskListener;
+	public void setSimpleDownloadTaskListener(EasySimpleDownloadTaskListener simpleDownloadTaskListener) {
+		this.mSimpleDownloadTaskListener = simpleDownloadTaskListener;
 	}
 
 	public EasyTaskEntity getTaskEntity() {
@@ -120,7 +119,8 @@ public class EasyDownloadTask implements Runnable {
 			}
 
 			File saveFile = new File(saveDirPath, saveFileName);
-			randomAccessFile = new RandomAccessFile(saveFile, "rwd");
+			File saveTempFile = new File(saveDirPath, saveFileName + ".tmp");
+			randomAccessFile = new RandomAccessFile(saveTempFile, "rwd");
 
 			if (mTaskEntity.getTaskStatus() == EasyTaskStatus.TASK_STATUS_CANCEL ||
 					mTaskEntity.getTaskStatus() == EasyTaskStatus.TASK_STATUS_PAUSE) {
@@ -136,23 +136,11 @@ public class EasyDownloadTask implements Runnable {
 			long completedSize = mTaskEntity.getCompletedSize();
 			long fileLength = randomAccessFile.length();
 //			Log.d("EasyDownload", "taskId[" + mTaskEntity.getTaskId() + "],fileLength[" + fileLength + "],completedSize[" + completedSize + "]");
-//			if (completedSize > 0 && fileLength != completedSize) {
-//				// 最保险的容错方案.
-//				completedSize = 0;
-//				mTaskEntity.setTotalSize(0);
-//				mTaskEntity.setCompletedSize(0);
-//				if (EasyDaoManager.instance().queryWithId(mTaskEntity.getTaskId()) != null) {
-//					EasyDaoManager.instance().delete(mTaskEntity);
-//				}
-//			}
+
 			if (completedSize > 0 && fileLength != completedSize) {
 				// 比较激进的容错方案.
 				completedSize = fileLength;
 				mTaskEntity.setCompletedSize(fileLength);
-			}
-
-			if (EasyDaoManager.instance().queryWithId(mTaskEntity.getTaskId()) != null) {
-				EasyDaoManager.instance().update(mTaskEntity);
 			}
 
 			Request request = new Request.Builder()
@@ -183,15 +171,7 @@ public class EasyDownloadTask implements Runnable {
 						return;
 					}
 //					Log.d("EasyDownload", "taskId[" + mTaskEntity.getTaskId() + "],contentLength[" + contentLength + "]");
-					if (EasyDaoManager.instance().queryWithId(mTaskEntity.getTaskId()) == null) {
-						// 首次下载记录总的长度,并保存入数据库.
-						mTaskEntity.setTotalSize(contentLength + completedSize);
-						EasyDaoManager.instance().insertOrReplace(mTaskEntity);
-					} else {
-						// 断点续传情况下，更新总长度.
-						mTaskEntity.setTotalSize(contentLength + completedSize);
-						EasyDaoManager.instance().update(mTaskEntity);
-					}
+					mTaskEntity.setTotalSize(contentLength + completedSize);
 
 					long fileTotalSize = mTaskEntity.getTotalSize();
 
@@ -213,34 +193,20 @@ public class EasyDownloadTask implements Runnable {
 						//避免一直调用数据库.
 						if (buffOffset >= updateSize) {
 							buffOffset = 0;
-							EasyDaoManager.instance().update(mTaskEntity);
 							mHandler.sendEmptyMessage(EasyTaskStatus.TASK_STATUS_DOWNLOADING);
 //							Log.d("EasyDownload", "taskId[" + mTaskEntity.getTaskId() + "],totalSize[" + fileTotalSize + "],completedSize[" + completedSize + "]");
 						}
 						if (completedSize == fileTotalSize) {
 //							Log.d("EasyDownload", "taskId[" + mTaskEntity.getTaskId() + "],totalSize[" + fileTotalSize + "],completedSize[" + completedSize + "]");
 							mHandler.sendEmptyMessage(EasyTaskStatus.TASK_STATUS_DOWNLOADING);
+							saveTempFile.renameTo(saveFile);
 							mTaskEntity.setTaskStatus(EasyTaskStatus.TASK_STATUS_FINISH);
 							mHandler.sendEmptyMessage(EasyTaskStatus.TASK_STATUS_FINISH);
-							EasyDaoManager.instance().update(mTaskEntity);
 						}
 					}
 
-					// 更新
-					if (EasyDaoManager.instance().queryWithId(mTaskEntity.getTaskId()) != null) {
-						EasyDaoManager.instance().update(mTaskEntity);
-					}
 
 //					Log.d("EasyDownload", "taskId[" + mTaskEntity.getTaskId() + "],exception：totalSize[" + fileTotalSize + "],completedSize[" + completedSize + "]");
-
-//					if (mTaskEntity.getTotalSize() == -1 && completedSize > 0) {
-//						// 返回文件大小未知情况下，直接设为下载完成.
-//						mHandler.sendEmptyMessage(EasyTaskStatus.TASK_STATUS_DOWNLOADING);
-//						mTaskEntity.setTaskStatus(EasyTaskStatus.TASK_STATUS_FINISH);
-//						mHandler.sendEmptyMessage(EasyTaskStatus.TASK_STATUS_FINISH);
-//						EasyDaoManager.instance().update(mTaskEntity);
-//					}
-
 				}
 			} else if (response.code() == 403 || response.code() == 404) {
 //				Log.d("EasyDownload", "taskId[" + mTaskEntity.getTaskId() + "],response.code()[" + response.code() + "]");
@@ -274,11 +240,6 @@ public class EasyDownloadTask implements Runnable {
 
 	public void pause() {
 		mTaskEntity.setTaskStatus(EasyTaskStatus.TASK_STATUS_PAUSE);
-		if (EasyDaoManager.instance().queryWithId(mTaskEntity.getTaskId()) == null) {
-			EasyDaoManager.instance().insertOrReplace(mTaskEntity);
-		} else {
-			EasyDaoManager.instance().update(mTaskEntity);
-		}
 		mHandler.sendEmptyMessage(EasyTaskStatus.TASK_STATUS_PAUSE);
 	}
 
@@ -294,9 +255,6 @@ public class EasyDownloadTask implements Runnable {
 
 	public void cancel() {
 		mTaskEntity.setTaskStatus(EasyTaskStatus.TASK_STATUS_CANCEL);
-		if (EasyDaoManager.instance().queryWithId(mTaskEntity.getTaskId()) != null) {
-			EasyDaoManager.instance().delete(mTaskEntity);
-		}
 		mHandler.sendEmptyMessage(EasyTaskStatus.TASK_STATUS_CANCEL);
 	}
 }

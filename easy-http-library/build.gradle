@@ -32,7 +32,7 @@ publish {
     groupId = 'com.yang.easyhttp'
     artifactId = 'easyhttp'
     uploadName = 'easyhttp-laurenceyanger'
-    publishVersion = '0.7.0'
+    publishVersion = '0.8.0'
     desc = 'network module for android,based on okhttp'
     website = 'https://github.com/LaurenceYang/EasyHttp'
 }

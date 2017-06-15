@@ -87,7 +87,6 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.ViewHo
                     holder.progress.setProgress(Integer.parseInt(progress));
                     holder.progressTxt.setText(progress);
                     break;
-                case EasyTaskStatus.TASK_STATUS_DOWNLOAD_START:
                 case EasyTaskStatus.TASK_STATUS_DOWNLOADING:
                     holder.button.setText(R.string.pause);
                     holder.progress.setProgress(Integer.parseInt(progress));
@@ -121,7 +120,7 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.ViewHo
                 EasyDownloadTask task = mDownloadManger.getTask(taskId);
 
                 if (task == null) {
-                    task = new EasyDownloadTask(new EasyTaskEntity.Builder().downloadUrl(url).build());
+                    task = new EasyDownloadTask(new EasyTaskEntity.Builder().taskId(taskId).downloadUrl(url).build());
                     responseUIListener(task, holder);
                     mDownloadManger.addTask(task);
                 } else {
@@ -140,7 +139,6 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.ViewHo
                         case EasyTaskStatus.TASK_STATUS_CONNECTING:
                             mDownloadManger.pauseTask(task);
                             break;
-                        case EasyTaskStatus.TASK_STATUS_DOWNLOAD_START:
                         case EasyTaskStatus.TASK_STATUS_DOWNLOADING:
                             mDownloadManger.pauseTask(task);
                             break;
@@ -179,15 +177,6 @@ public class DownloadAdapter extends RecyclerView.Adapter<DownloadAdapter.ViewHo
             public void onConnecting(EasyDownloadTask downloadTask) {
                 if (holder.itemView.getTag().equals(taskEntity.getDownloadUrl())) {
                     holder.button.setText(R.string.connecting);
-                }
-            }
-
-            @Override
-            public void onDownloadStart(EasyDownloadTask downloadTask) {
-                if (holder.itemView.getTag().equals(taskEntity.getDownloadUrl())) {
-                    holder.button.setText(R.string.pause);
-                    holder.progress.setProgress(Integer.parseInt(getPercent(taskEntity.getCompletedSize(), taskEntity.getTotalSize())));
-                    holder.progressTxt.setText(getPercent(taskEntity.getCompletedSize(), taskEntity.getTotalSize()));
                 }
             }
 

@@ -63,7 +63,7 @@ public class RxEasyHttpManager {
 	 */
 	public <T> Flowable<T> post(String url, EasyRequestParams requestParams, RxEasyConverter<T> rxEasyConverter) {
 		FormBody.Builder builder = new FormBody.Builder();
-		ConcurrentHashMap<String, String> paramsMap = requestParams.getUrlParams();
+		ConcurrentHashMap<String, String> paramsMap = requestParams.getRequestParams();
 		for (ConcurrentHashMap.Entry<String, String> entry : paramsMap.entrySet()) {
 			builder.add(entry.getKey(), entry.getValue());
 		}

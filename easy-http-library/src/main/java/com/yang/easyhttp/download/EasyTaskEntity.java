@@ -1,10 +1,9 @@
 package com.yang.easyhttp.download;
 
-import android.text.TextUtils;
-
 import org.greenrobot.greendao.annotation.Entity;
 import org.greenrobot.greendao.annotation.Generated;
 import org.greenrobot.greendao.annotation.Id;
+import org.greenrobot.greendao.annotation.NotNull;
 import org.greenrobot.greendao.annotation.Property;
 
 /**
@@ -15,12 +14,14 @@ public class EasyTaskEntity {
 	@Id(autoincrement = true)
 	private Long id;
 	@Property
+	@NotNull
 	private String taskId;
 	@Property
 	private long totalSize;
 	@Property
 	private long completedSize;
 	@Property
+	@NotNull
 	private String downloadUrl;
 	@Property
 	private String saveDirPath;
@@ -39,9 +40,10 @@ public class EasyTaskEntity {
 		this.taskStatus = builder.taskStatus;
 	}
 
-	@Generated(hash = 209801383)
-	public EasyTaskEntity(Long id, String taskId, long totalSize, long completedSize,
-									String downloadUrl, String saveDirPath, String saveFileName, int taskStatus) {
+	@Generated(hash = 1668992877)
+	public EasyTaskEntity(Long id, @NotNull String taskId, long totalSize, long completedSize,
+									@NotNull String downloadUrl, String saveDirPath, String saveFileName,
+									int taskStatus) {
 					this.id = id;
 					this.taskId = taskId;
 					this.totalSize = totalSize;
@@ -57,7 +59,6 @@ public class EasyTaskEntity {
 	}
 
 	public String getTaskId() {
-		taskId = TextUtils.isEmpty(taskId) ? String.valueOf(downloadUrl.hashCode()) : taskId;
 		return taskId;
 	}
 
@@ -122,12 +123,14 @@ public class EasyTaskEntity {
 	}
 	public static class Builder {
 		// file id
+		@NotNull
 		private String taskId;
 		// file length
 		private long totalSize;
 		// file complete length
 		private long completedSize;
 		// file url
+		@NotNull
 		private String downloadUrl;
 		// file save path
 		private String saveDirPath;
@@ -153,7 +156,6 @@ public class EasyTaskEntity {
 
 		public Builder downloadUrl(String downloadUrl) {
 			this.downloadUrl = downloadUrl;
-			this.taskId = String.valueOf(downloadUrl.hashCode());
 			return this;
 		}
 

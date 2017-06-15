@@ -7,6 +7,7 @@ import android.text.TextUtils;
 
 import com.google.gson.Gson;
 import com.yang.easyhttp.Interceptor.EasyCacheInterceptor;
+import com.yang.easyhttp.Interceptor.EasyHeaderInterceptor;
 import com.yang.easyhttp.Interceptor.EasyLoggingInterceptor;
 import com.yang.easyhttp.Interceptor.EasyUserAgentInterceptor;
 import com.yang.easyhttp.cache.EasyCacheDir;
@@ -36,6 +37,10 @@ import okhttp3.Response;
  */
 public class EasyHttpClientManager {
 	private final static String TAG = "EasyHttpClientManager";
+	public final static int REQUEST_POST = 1;
+	public final static int REQUEST_DELETE = 2;
+	public final static int REQUEST_PUT = 3;
+
 	private static EasyHttpClientManager mInstance = null;
 
 	private OkHttpClient mNoCacheOKHttpClient;
@@ -315,7 +320,7 @@ public class EasyHttpClientManager {
 	 * @return
 	 */
 	public String buildUrl(String url, EasyRequestParams params) {
-		if (params != null) {
+		if (params != null && params.getRequestParams()!= null && params.getRequestParams().size() > 0) {
 			return url + "&" + params.toString();
 		} else {
 			return url;
@@ -342,8 +347,19 @@ public class EasyHttpClientManager {
 			cacheType = mConfig.getGlobalCacheType();
 		}
 
+		OkHttpClient httpClient = getOkHttpClient(cacheType);
+
+		if (requestParams != null) {
+			ConcurrentHashMap<String, String> headers = requestParams.getRequestHeaders();
+			if (headers != null && headers.size() > 0) {
+				OkHttpClient.Builder builder = httpClient.newBuilder();
+				builder.addNetworkInterceptor(new EasyHeaderInterceptor(headers));
+				httpClient = builder.build();
+			}
+		}
+
 		// 异步.
-		getOkHttpClient(cacheType).newCall(request).enqueue(new Callback() {
+		httpClient.newCall(request).enqueue(new Callback() {
 			@Override
 			public void onFailure(Call call, final IOException e) {
 				// 子线程
@@ -413,26 +429,50 @@ public class EasyHttpClientManager {
 	 * @param callBack
 	 * @param <T>
 	 */
-	public <T> void post(String url, EasyRequestParams requestParams, final EasyCallback<T> callBack) {
+	public <T> void postOrDeleteOrPut(String url, EasyRequestParams requestParams, final EasyCallback<T> callBack, int type) {
 		FormBody.Builder builder = new FormBody.Builder();
-		ConcurrentHashMap<String, String> paramsMap = requestParams.getUrlParams();
+		ConcurrentHashMap<String, String> paramsMap = requestParams.getRequestParams();
 		for (ConcurrentHashMap.Entry<String, String> entry : paramsMap.entrySet()) {
 			builder.add(entry.getKey(), entry.getValue());
 		}
 
 		RequestBody requestBody = builder.build();
-		final Request request = new Request.Builder()
-				.url(url)
-				.post(requestBody)
-				.build();
+		Request.Builder requestBuilder = new Request.Builder();
+		requestBuilder.url(url);
+		switch (type) {
+			case REQUEST_POST:
+				requestBuilder.post(requestBody);
+				break;
+			case REQUEST_DELETE:
+				requestBuilder.delete(requestBody);
+				break;
+			case REQUEST_PUT:
+				requestBuilder.put(requestBody);
+				break;
+			default:
+				requestBuilder.post(requestBody);
+				break;
+		}
+		final Request request = requestBuilder.build();
 
 		if (callBack != null) {
 			// UI线程.
 			callBack.onStart();
 		}
 
+		OkHttpClient httpClient = getNoCacheOkHttpClient();
+
+		if (requestParams != null) {
+			ConcurrentHashMap<String, String> headers = requestParams.getRequestHeaders();
+			if (headers != null && headers.size() > 0) {
+				OkHttpClient.Builder okHttpClientBuilder = httpClient.newBuilder();
+				okHttpClientBuilder.addNetworkInterceptor(new EasyHeaderInterceptor(headers));
+				httpClient = okHttpClientBuilder.build();
+			}
+		}
+
 		// 异步.
-		getNoCacheOkHttpClient().newCall(request).enqueue(new Callback() {
+		httpClient.newCall(request).enqueue(new Callback() {
 			@Override
 			public void onFailure(Call call, final IOException e) {
 				// 子线程

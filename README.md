@@ -3,8 +3,8 @@
 [![Download](https://api.bintray.com/packages/laurenceyanger/maven/easyhttp-laurenceyanger/images/download.svg) ](https://bintray.com/laurenceyanger/maven/easyhttp-laurenceyanger/_latestVersion)
     Support RxJava[![Download](https://api.bintray.com/packages/laurenceyanger/maven/rxeasyhttp/images/download.svg) ](https://bintray.com/laurenceyanger/maven/rxeasyhttp/_latestVersion)
 ## 特性
-* 支持Get/Post请求
-* Get/Post请求完美支持String，Json，自定义对象返回
+* 支持Get/Post/Delete/Put请求
+* 完美支持String/Json/自定义对象返回
 * Get支持全局缓存设置及不同请求不同缓存设置
 * 支持Callback和RxJava2两种形式回调
 * 支持文件下载及下载管理
@@ -14,8 +14,8 @@
 * 基于okhttp3
 * 下载管理数据库使用greendao
 
-
 ## 最新版本
+* v0.8.0 - 2017.06.15 - 添加Delte/Put请求支持；下载添加404／403异常处理；容错性稳定性优化；其它细节优化
 * v0.7.0 - 2017.03.15 - Get/Post请求支持RxJava2
 * v0.6.0 - 2017.02.27 - Get/Post请求完美支持String，Json，自定义对象返回；下载模块添加异常检测及容错处理
 * v0.5.0 - 2017.02.21 - 初版发布，支持Get、Post、下载、上传、断点续传、不同缓存策略等
@@ -36,7 +36,7 @@ jcenter()
 在module的`build.gradle`文件的`dependencies`区域内添加如下所示配置：
 
 ```java
-compile 'com.yang.easyhttp:easyhttp:0.7.0'
+compile 'com.yang.easyhttp:easyhttp:0.8.0'
 ```
 
 ## 初始化

@@ -75,7 +75,29 @@ public class EasyHttpClient {
 	 * @param <T>
 	 */
 	public static <T> void post(String url, EasyRequestParams easyRequestParams, EasyCallback<T> callback) {
-		EasyHttpClientManager.getInstance().post(url, easyRequestParams, callback);
+		EasyHttpClientManager.getInstance().postOrDeleteOrPut(url, easyRequestParams, callback, EasyHttpClientManager.REQUEST_POST);
+	}
+
+	/**
+	 * delete request.
+	 * @param url
+	 * @param easyRequestParams
+	 * @param callback
+	 * @param <T>
+	 */
+	public static <T> void delete(String url, EasyRequestParams easyRequestParams, EasyCallback<T> callback) {
+		EasyHttpClientManager.getInstance().postOrDeleteOrPut(url, easyRequestParams, callback, EasyHttpClientManager.REQUEST_DELETE);
+	}
+
+	/**
+	 * put request
+	 * @param url
+	 * @param easyRequestParams
+	 * @param callback
+	 * @param <T>
+	 */
+	public static <T> void put(String url, EasyRequestParams easyRequestParams, EasyCallback<T> callback) {
+		EasyHttpClientManager.getInstance().postOrDeleteOrPut(url, easyRequestParams, callback, EasyHttpClientManager.REQUEST_PUT);
 	}
 
 	/**
